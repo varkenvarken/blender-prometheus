@@ -1,0 +1,3 @@
+[submodule "src/blenderprometheus/client_python"]
+	path = src/blenderprometheus/client_python
+	url = https://github.com/prometheus/client_python.git
