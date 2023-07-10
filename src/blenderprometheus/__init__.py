@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Blender-Prometheus",
     "author": "Michel Anders (varkenvarken)",
-    "version": (0, 0, 20230710105529),
+    "version": (0, 0, 20230710144830),
     "blender": (3, 6, 0),
     "location": "",
     "description": "Expose metrics with the help of prometheus",
@@ -38,44 +38,60 @@ from pathlib import Path
 path.append(str(Path(__file__).parent / "client_python"))
 
 import bpy 
+from bpy.app.handlers import persistent
 
-from prometheus_client import Gauge, REGISTRY
+from prometheus_client import Gauge, Counter, REGISTRY
 from .server import start_server, stop_server
 
-def every_10_seconds():
-    """
-    Check if we are running a render job.
+@persistent
+def render_cancel(scene=None):
+    global is_rendering
+    is_rendering.set(0.0)
 
-    Updates a global Gauge accordingly and returns the number
-    of seconds when to run this function again.
-    """
-    global g
-    r = bpy.app.is_job_running("RENDER")
-    if r:
-        g.set(1.0)
-    else:
-        g.set(0.0)
-    return 10.0
+@persistent
+def render_complete(scene=None):
+    global is_rendering
+    is_rendering.set(0.0)
+
+@persistent
+def render_init(scene=None):
+    global is_rendering
+    is_rendering.set(1.0)
+
+@persistent
+def render_post(scene=None):
+    global frame_count
+    frame_count.inc()
+
 
 def register():
     """
-    Create a Gauge, start a metrics server and add a timer.
+    Create a Gauge and a Counter, then start a metrics server.
     """
-    global g
-    g = Gauge("Blender_Render", "Rendering processes")
+    global is_rendering
+    is_rendering = Gauge("Blender_Render", "Rendering processes")
+    global frame_count
+    frame_count = Counter("Frame_Counter", "Number of frames rendered")
     start_server(8000)
-    # We make it persistent so it will survive loading a .blend
-    bpy.app.timers.register(every_10_seconds, persistent=True)
+    bpy.app.handlers.render_cancel.append(render_cancel)
+    bpy.app.handlers.render_complete.append(render_complete)
+    bpy.app.handlers.render_init.append(render_init)
+    bpy.app.handlers.render_post.append(render_post)
 
 def unregister():
     """
-    Remove the timer, unregister the Gauge and stop the server.
+    Unregister the Gauge and Counter, then stop the server.
 
     This will ensure we can indeed restart the server and create
     a new Gauge when we reenable the add-on.
     """
-    global g
-    bpy.app.timers.unregister(every_10_seconds)
-    REGISTRY.unregister(g)
+    global is_rendering
+    global frame_count
+    bpy.app.handlers.render_cancel.remove(render_cancel)
+    bpy.app.handlers.render_complete.remove(render_complete)
+    bpy.app.handlers.render_init.remove(render_init)
+    bpy.app.handlers.render_post.remove(render_post)
+    REGISTRY.unregister(is_rendering)
+    REGISTRY.unregister(frame_count)
     stop_server()
 
