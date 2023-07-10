@@ -19,6 +19,11 @@ The standard metrics, like cpu usage are also exposed.
 Download https://github.com/varkenvarken/blender-prometheus/blob/main/blenderprometheus.zip directly from the repository and install and enabled as usual.
 You can also build the add-on yourself, see [below](#building-the-add-on)
 
+The add-on has a single preference option 'Address:port' which can be set to a machine name (or ip-address) and port combination. When changed, the metric server will stopped and restarted to listen on this new address:port combination. If the address or port in invalid the server will start listening on all addresses and port 8000 (i.e. 0.0.0.0:8000)
+
+Note that add-on preferences are only saved if you leave the add-on enabled.
+(see https://projects.blender.org/blender/blender/issues/71486)
+
 ## Configuring Prometheus
 
 I am running Prometheus is a [Docker container](https://hub.docker.com/r/prom/prometheus)
