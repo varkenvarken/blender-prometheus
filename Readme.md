@@ -1,4 +1,5 @@
 - [A Prometheus add-on for Blender](#a-prometheus-add-on-for-blender)
+  - [Donations accepted](#donations-accepted)
   - [Installing the add-on](#installing-the-add-on)
   - [Configuring Prometheus](#configuring-prometheus)
   - [Configuring Grafana](#configuring-grafana)
@@ -13,6 +14,12 @@ In particular, it exposes a [Gauge](https://prometheus.io/docs/concepts/metric_t
 and a [Counter](https://prometheus.io/docs/concepts/metric_types/#counter), *Frame_Counter*, that is incremented for every successfully rendered frame. 
 
 The standard metrics, like cpu usage are also exposed.
+
+## Donations accepted
+
+You are more than welcome to use this add-on: It is completely free and open source.
+
+But if you would like to show your appreciation and you can afford it, consider following the sponsor button at the top of this repo.
 
 ## Installing the add-on
 
