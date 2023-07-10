@@ -22,13 +22,12 @@
 bl_info = {
     "name": "Blender-Prometheus",
     "author": "Michel Anders (varkenvarken)",
-    "version": (0, 0, 20230710144830),
+    "version": (0, 0, 20230710171842),
     "blender": (3, 6, 0),
     "location": "",
     "description": "Expose metrics with the help of prometheus",
     "warning": "Opens a port on the machine running Blender (http://localhost:8000)",
-    "wiki_url": "https://github.com/varkenvarken/blenderaddons/blob/master/prometheus",
-    "tracker_url": "",
+    "doc_url": "https://github.com/varkenvarken/blender-prometheus",
     "category": "System",
 }
 
