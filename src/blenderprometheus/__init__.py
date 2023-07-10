@@ -1,6 +1,6 @@
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  Prometheus, a Blender addon
+#  Blender-Prometheus, a Blender addon
 #  (c) 2023 Michel J. Anders (varkenvarken)
 #
 #  This program is free software; you can redistribute it and/or
@@ -19,17 +19,17 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# Note: the prometheus_client subdirectory is part of
+# Note: the client_python subdirectory is part of
 # https://github.com/prometheus/client_python/tree/master and covered by its own license.
 
 bl_info = {
-    "name": "Prometheus",
+    "name": "Blender-Prometheus",
     "author": "Michel Anders (varkenvarken)",
-    "version": (0, 0, 20230709165251),
+    "version": (0, 0, 20230710093846),
     "blender": (3, 6, 0),
     "location": "",
     "description": "Expose metrics with the help of prometheus",
-    "warning": "",
+    "warning": "Opens a port on the machine running Blender (http://localhost:8000)",
     "wiki_url": "https://github.com/varkenvarken/blenderaddons/blob/master/prometheus",
     "tracker_url": "",
     "category": "System",
@@ -37,7 +37,7 @@ bl_info = {
 
 import bpy  # type: ignore
 
-from .prometheus_client import Gauge, start_http_server, stop_http_server, REGISTRY
+from client_python.prometheus_client import Gauge, start_http_server, REGISTRY
 
 def every_10_seconds():
     global g
@@ -68,7 +68,7 @@ def unregister():
     global g
     bpy.app.timers.unregister(every_10_seconds)
     REGISTRY.unregister(g)
-    stop_http_server()
+    #stop_http_server()
     for c in classes:
         bpy.utils.unregister_class(c)
 
