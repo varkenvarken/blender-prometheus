@@ -1,8 +1,18 @@
+- [A Prometheus add-on for Blender](#a-prometheus-add-on-for-blender)
+  - [Installing the add-on](#installing-the-add-on)
+  - [Configuring Prometheus](#configuring-prometheus)
+  - [Configuring Grafana](#configuring-grafana)
+  - [Building the add-on](#building-the-add-on)
+  - [Source code](#source-code)
+
 # A Prometheus add-on for Blender
 
 Exposes [Prometheus](https://prometheus.io/) metrics on port 8000 when enabled.
 
-In particular, it exposes a [Gauge](https://prometheus.io/docs/concepts/metric_types/#gauge), *Blender_Render*, that is 1 when the Blender instance is rendering, and 0 when it is not. The standard metrics, like cpu usage are also exposed.
+In particular, it exposes a [Gauge](https://prometheus.io/docs/concepts/metric_types/#gauge), *Blender_Render*, that is 1 when the Blender instance is rendering, and 0 when it is not,
+and a [Counter](https://prometheus.io/docs/concepts/metric_types/#counter), *Frame_Counter*, that is incremented for every successfully rendered frame. 
+
+The standard metrics, like cpu usage are also exposed.
 
 ## Installing the add-on
 
@@ -33,9 +43,12 @@ scrape_configs:
 I am running Grafana in a [Docker container](https://hub.docker.com/r/grafana/grafana)
 
 Configuring Grafana is out-of-scope for this readme,
-but it is extremely straight forward to add a panel (if you have Grafana configured to talk to your Prometheus server). A screenshot of the panel edit is shown below.
+but it is extremely straight forward to add a panel (if you have Grafana configured to talk to your Prometheus server).
+Screenshots of the Blender render and Frames per minute panels shown below.
 
 ![Example panel](images/grafana_example_panel.png)
+
+![Exmaple panel 2](images/grafana_frames_per_minute_panel.png)
 
 ## Building the add-on
 
@@ -64,16 +77,19 @@ If you are using VScode, you can also open `blender-prometheus/__init__.py` and 
 
 ## Source code
 
-The code is extremely simple: when the add-on is enabled we create a Gauge metric and start the prometheus http server. We then register a [Blender timer](https://docs.blender.org/api/latest/bpy.app.timers.html#bpy.app.timers.register) that checks every 10 seconds if we are rendering or not with the [is_app_running()](https://docs.blender.org/api/latest/bpy.app.html#bpy.app.is_job_running) function and sets the Gauge accordingly.
+The code is extremely simple: when the add-on is enabled we create a Gauge and a Counter metric and start the prometheus http server.
 
-The timer is made persistent, so it will keep running even if we load another .blend file.
+We also register a bunch of [app handlers](https://docs.blender.org/api/latest/bpy.app.handlers.html#module-bpy.app.handlers)
+that updates the Gauge when a render job is started or ends, and updates the Counter for every successful frame render.
+
+The app handlers are made persistent, so it will keep running even if we load another .blend file.
 
 The Prometheus server is running in a separate (daemon) thread and will only end if we exit Blender or if we invoke our custom `stop_server()` function.
 
 We needed to create custom start_server() and stop_server() functions because the Prometheus `start_http-server()` function does not return the server it creates,
 so we have no way to call its `shutdown()` function (which is present, because it is a subclass of [http.server](https://docs.python.org/3.11/library/http.server.html)) or call `close()` on the socket it is listening on, and this would prevent us from disabling and then enabling the add-on again, because we would get an address in use exception.
 
-Same goes for the Gauge: If we want to be able to reenable the add-on we  have to make sure to remove it from the registry in the `unregister()` function.
+Same goes for the Gauge and the Counter: If we want to be able to reenable the add-on we  have to make sure to remove them from the registry in the `unregister()` function.
 
 The custom server code, which unfortunately had to duplicate a few lines from the original code in prometheus_client/exposition.py because not everything we needed was exposed publicly, is all contained in server.py
 
