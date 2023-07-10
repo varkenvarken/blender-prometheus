@@ -3,15 +3,7 @@ from socketserver import ThreadingMixIn
 import threading
 from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
 from prometheus_client import CollectorRegistry, REGISTRY
-from prometheus_client.exposition import make_wsgi_app, make_server
-
-class ThreadingWSGIServer(ThreadingMixIn, WSGIServer):
-    """Thread per request HTTP server."""
-    # Make worker threads "fire and forget". Beginning with Python 3.7 this
-    # prevents a memory leak because ``ThreadingMixIn`` starts to gather all
-    # non-daemon threads in a list in order to join on them at server close.
-    daemon_threads = True
-
+from prometheus_client.exposition import make_wsgi_app, make_server, ThreadingWSGIServer
 
 def _get_best_family(address, port):
     """Automatically select address family depending on address"""
